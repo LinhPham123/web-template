@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+    db:
+      image: mariadb:11.1.2
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: dbname
+        MYSQL_INITDB_SKIP_TZINFO: 1  # Skip timezone info to avoid potential issues
+      ports:
+        - '3306:3306'
+      command: ['--innodb-use-native-aio=0']  # Specify InnoDB engine
+      volumes:
+        - mariadb_data:/var/lib/mysql
+    be:
+      build:
+        context: ./packages/backend
+        dockerfile: Dockerfile
+      working_dir: /usr/src/app
+      environment:
+        MARIADB_URL: mariadb://root:root@db:3306/dbname
+      ports:
+        - '3000:3000'
+      depends_on:
+        - db
+volumes:
+  mariadb_data:
+    driver: local
+
